@@ -1,0 +1,161 @@
+.section .text
+.global main
+
+main:
+
+
+
+    li t0,0
+
+    la t1,initial_switch_to_B
+    csrw mtvec,t1
+
+    csrr t0,mstatus
+    li t1,0xFFFFE7FF
+    and t0,t0,t1
+    csrw mstatus,t0
+
+    csrr t1,mie
+    ori t1,t1,0x80
+    csrw mie,t1
+
+    li t2,10000
+    la t1,0x2004000
+    sw t2,0(t1)
+
+
+
+
+    la t0,Task_A
+    csrw mepc,t0
+
+    mret
+
+context_switch:
+
+    csrr t0,mepc
+    la t1,current
+    lw t2,0(t1)
+    beq t2,zero,save_context_A
+    j save_context_B
+
+
+save_context_A:
+
+        la t3,stack_a
+        sw ra,0(t3)
+        sw sp,8(t3)
+        sw t0,16(t3)
+        j switch_to_B
+
+save_context_B:
+
+        la t3,stack_b
+        sw ra,0(t3)
+        sw sp,8(t3)
+        sw t0,16(t3)
+        j switch_to_A
+
+switch_to_A:
+
+        la t3,stack_a
+        lw ra,0(t3)
+        lw sp,8(t3)
+        lw t1,16(t3)
+        csrw mepc,t1
+        li t2,0
+        la t4,current
+        sw t2,0(t4)
+        j switch
+
+
+switch_to_B:
+    la t3,stack_b
+    lw ra,0(t3)
+    lw sp,8(t3)
+    lw t1,16(t3)
+
+    csrw mepc,t1
+
+    li t2,1
+    la t4,current
+    sw t2,0(t4)
+    j switch
+
+initial_switch_to_B:
+
+    la t5,stack_a
+    csrr t4,mepc
+    sw t4,0(t5)
+
+    sw t1,8(t5)
+    la t2,current
+    li t4,1
+    sw t4,0(t2)
+
+    li t4,0x10000
+    li t5,0x2004000
+
+    lw t0,0(t5)
+    add t0,t0,t4
+    sw t0,0(t5)
+
+    la t4,context_switch
+    csrw mtvec,t4
+
+    la t2,Task_B
+    csrrw x0,mepc ,t2
+
+    li t1,0x3fffffff
+    mret 
+
+
+
+switch:
+
+    la t0,0x200bff8
+    lw t1,0(t0)
+    li t2,10000
+    add t1,t1,t2
+    la t3,0x2004000
+    sw t1,0(t3)
+    mret
+
+
+
+Task_A:
+    li t0,0
+loop1:
+    addi t0,t0,1
+    li t1,0x0fffffff
+    la t6,stack_a
+    sw t0,24(t6)
+
+    bge t0,t1,finish_a
+    j loop1
+
+finish_a:
+    j finish_a
+
+
+Task_B:
+    li t0,0x03ffffff
+
+loop2:
+la t6,stack_b
+    sw t0,24(t6)
+
+    beq t0,zero,finish_b
+    j loop2
+
+finish_b:
+    j finish_b
+
+
+
+.section .data
+.align
+stack_a:  .space  256   # initialize stack for task A (You can choose a random address) 
+stack_b:  .space  256       # initialize stack for task B
+top_b:
+current:  .word 0
