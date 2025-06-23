@@ -1,0 +1,69 @@
+.section .text
+.global main
+
+main:
+    li t2,10000
+    li t0,0
+    
+
+    la t0,mtrap
+    csrw mtvec,t0
+
+    csrr t0,mstatus
+    li t1,0xFFFFE7FF
+    and t0,t0,t1
+    csrw mstatus,t0
+
+    csrr t1,mie
+    ori t1,t1,0x80
+    csrw mie,t1
+
+    
+    la t1,0x2004000
+    sw t2,0(t1)
+
+
+
+
+    la t0,user
+    csrw mepc,t0
+
+    mret
+
+mtrap:
+    csrr t5,mcause
+
+    la a1,0x200bff8
+    lw a1,0(a1)
+    la a2,0x2004000
+    lw a2,0(a2)
+ 
+    
+    
+    la t3,0x2004000
+    lw t1,0(t3)
+    li t2,10000
+    add t1,t1,t2
+    sw t1,0(t3)
+
+
+
+    la t6,user
+    csrw mepc,t6
+
+    mret
+
+
+
+user:
+    la a1,0x200bff8
+    lw a1,0(a1)
+    la a2,0x2004000
+    lw a2,0(a2)
+
+    j user
+
+
+
+
+
