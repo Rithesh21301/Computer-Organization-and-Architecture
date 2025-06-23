@@ -1,0 +1,113 @@
+.section .text
+.global main
+
+
+main:
+    li t0,1
+    slli t0,t0,12
+    csrrc zero,mstatus,t0
+    srli t0,t0,1
+    csrrs zero,mstatus,t0
+
+    la t0,supervisor
+    csrw mepc,t0
+
+    mret
+
+    # Jump to supervisor mode
+
+
+supervisor:
+
+################ Initialize your page tables here ################
+
+    li t0,0x81000000
+    li t1,0x82001000
+    li t2,0x83001000
+    li a1,0x82000000
+    li a2,0x83000000
+
+    li a3,0x80001000
+    li a4,0x80002000
+    li a5,0x80000000
+
+
+####################################################################
+
+    srli t4,t1,12
+    slli t4,t4,10
+    li t5,0x1
+    or t4,t4,t5
+    sd t4,0(t0)
+
+    srli t4,a1,12
+    slli t4,t4,10
+    or t4,t4,t5
+    sd t4,16(t0)
+
+    srli t4,a2,12
+    slli t4,t4,10
+    or t4,t4,t5
+    sd t4,0(a1)
+
+
+    srli t4,t2,12
+    slli t4,t4,10
+    or t4,t4,t5
+    sd t4,0(t1)
+
+    # Prepare jump to user mode
+
+    srli t4,a3,12
+    slli t4,t4,10
+    ori t4,t4,0x7f
+    sd t4,0(t2)
+
+    srli t4,a4,12
+    slli t4,t4,10
+    ori t4,t4,0x6f
+    sd t4,8(t2)
+
+    srli t4,a5,12
+    slli t4,t4,10
+    ori  t4,t4,0x6f
+    sd t4,0(a2)
+
+
+
+
+
+
+
+
+################ DO NOT MODIFY THESE INSTRUCTIONS ################
+    la t1, satp_config # load satp val
+    ld t2, 0(t1)
+    sfence.vma zero, zero
+    csrrw zero, satp, t2
+    sfence.vma zero, zero
+
+    li t4, 0
+    csrrw zero, sepc, t4 
+    sret
+####################################################################
+
+
+.align 12
+user_code:
+    la t1,var1
+    la t2,var2
+    la t3,var3
+    la t4,var4
+    j user_code
+
+
+.data
+.align 12
+var1:  .word  1
+var2:  .word  2
+var3:  .word  3
+var4:  .word  4
+
+.align 8
+satp_config: .dword  0x8000000000081000 # Value to set in satp
