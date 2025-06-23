@@ -1,0 +1,70 @@
+.section .text
+.global main
+
+main:
+    la a0,val1
+    ld a0 ,0(a0)
+
+    la a1,val2
+    ld a1 ,0(a1)
+
+    la a2,val3
+    ld a2 ,0(a2)
+
+    la a3,val4
+    ld a3 ,0(a3)
+
+
+
+    mul a5 ,a0 ,a2
+    la t4,r1
+    sd a5 ,0(t4)
+    
+
+
+
+    mulhu t0 ,a0 ,a2
+    mul t1 ,a1 ,a2
+    mul t5 ,a0,a3
+
+    add t0,t0,t1
+    sltu t2,t0,t1
+    add t0,t0,t5
+    sltu t6,t0,t5
+    add t6,t6,t2
+
+    la t3,r2
+    sd t0,0(t3)
+
+    mulhu t1,a1,a2
+    mulhu t2,a0,a3
+
+    add t5,t2,t6
+    
+    add t5,t5,t1
+    sltu t6,t5,t1
+    mul t0,a1,a3
+    add t0,t0,t5
+    sltu t2,t0,t5
+
+    la t1,r3
+    sd t0,0(t1)
+
+    mulhu t5,a1,a3
+    add t2,t2,t6
+    add t5,t5,t2
+
+    la t0,r4
+    sd t5,0(t0)
+
+
+
+.section .data
+val1:  .dword 0x1234567887654321
+val2:  .dword 0x1234567887654321
+val3:  .dword 0x8765432112345678
+val4:  .dword 0x8765432112345678
+r1: .dword 0
+r2: .dword 0
+r3: .dword 0
+r4: .dword 0
